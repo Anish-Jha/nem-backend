@@ -22,17 +22,8 @@ blogRouter.get("/blogs", auth, async (req, res) => {
     } else if (order === "desc") {
       sort.date = -1;
     }
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 5;
-
-    const totalBlogs = await Blog.countDocuments(filters);
-    const totalPages = Math.ceil(totalBlogs / limit);
-    const blogs = await Blog.find(filters).sort(sort).skip((page - 1) * limit).limit(limit);
-    res.status(200).json({
-      blogs,
-      currentPage: page,
-      totalPages: totalPages,
-    });
+    const blogs = await Blog.find(filters).sort(sort);
+    res.status(200).json(blogs);
   } catch (err) {
     res
       .status(500)
@@ -96,7 +87,7 @@ blogRouter.patch("/blogs/:id", auth, async (req, res) => {
     if (blog.userID.toString() !== userId) {
       return res
         .status(403)
-        .json({ message: "You are not authorized to update this blog" });
+        .json({ message: "Unauthorised user" });
     }
     const blogs = await Blog.findByIdAndUpdate(id, req.body, { new: true });
     res.status(201).send(blogs);
@@ -119,7 +110,7 @@ blogRouter.delete("/blogs/:id", auth, async (req, res) => {
     if (blog.userID.toString() !== userId) {
       return res
         .status(403)
-        .json({ message: "You are not authorized to delete this blog" });
+        .json({ message: "Unauthorised user" });
     }
 
     await Blog.findByIdAndDelete(id);
